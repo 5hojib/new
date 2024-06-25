@@ -46,9 +46,9 @@ jobs:
           stack: "container"
           region: "eu"
         env:
-          HD_ADMINS: ${{inputs.OWNER_ID}}
-          HD_APP_ID: ${{inputs.TELEGRAM_API}}
-          HD_API_HASH: ${{inputs.TELEGRAM_HASH}}
+          HD_ADMINS: ${{inputs.ADMINS}}
+          HD_APP_ID: ${{inputs.APP_ID}}
+          HD_API_HASH: ${{inputs.API_HASH}}
           HD_DATABASE_URL: ${{inputs.DATABASE_URL}}
           HD_BOT_TOKEN: ${{inputs.BOT_TOKEN}}
           HD_STORE_CHANNEL: ${{inputs.STORE_CHANNEL}}

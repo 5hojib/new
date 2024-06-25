@@ -39,7 +39,7 @@ async def start(_, message):
 async def main():
     bot.add_handler(MessageHandler(start, filters=command('start')))
     bot.add_handler(MessageHandler(help, filters=command('help')))
-    LOGGER.info("Bot Started! x")
+    LOGGER.info("Bot Started!")
 
 
 bot.loop.run_until_complete(main())

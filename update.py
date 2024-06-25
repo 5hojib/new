@@ -6,7 +6,7 @@ UPSTREAM_REPO = 'https://github.com/5hojib/new'
 UPSTREAM_BRANCH = 'main'
 
 if os.path.exists('.git'):
-    run(["rm", "-rf", ".git"])
+    subprocess.run(["rm", "-rf", ".git"])
 
 update = subprocess.run([
     f"git init -q && "

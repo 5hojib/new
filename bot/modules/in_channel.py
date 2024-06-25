@@ -17,7 +17,7 @@ def extract_message_id(url):
     return None
 
 
-async def copy_message(message):
+async def copy_message(_, message):
     try:
         post_message = await message.copy(chat_id=STORE_CHANNEL, disable_notification=True)
         return post_message
@@ -33,7 +33,7 @@ async def copy_message(message):
 async def channel_post(client, message):
     reply_text = await message.reply_text("Please Wait...!", quote=True)
     
-    post_message = await copy_message(message)
+    post_message = await copy_message(client, message)
     if not post_message:
         await reply_text.edit_text("Something went Wrong..!")
         return

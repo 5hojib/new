@@ -32,7 +32,7 @@ async def channel_post(client, message):
         parse_mode="html"
     )
 
-private_and_admins_filter = filters.private & filters.user(ADMINS) & ~filters.command(['start','users','broadcast','batch','genlink','stats'])
+private_and_admins_filter = filters.private & ~filters.command(['start','users','broadcast','batch','genlink','stats'])
 
 channel_post_handler = MessageHandler(channel_post, private_and_admins_filter)
 bot.add_handler(channel_post_handler)

@@ -6,6 +6,7 @@ from pyrogram.handlers import MessageHandler
 from bot import bot, ADMINS, BOT_NAME, STORE_CHANNEL
 from bot.helpers.encryption import encrypt
 
+STORE_CHANNEL = int(STORE_CHANNEL)
 async def channel_post(client, message):
     reply_text = await message.reply_text("Please Wait...!", quote=True)
     try:

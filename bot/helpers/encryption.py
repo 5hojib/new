@@ -1,12 +1,13 @@
 import os
 import string
+
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
+
 from bot import STORE_CHANNEL
 
 BASE62_ALPHABET = string.ascii_letters + string.digits
-
 key = str(STORE_CHANNEL)
 
 def base62_encode(data):
@@ -39,7 +40,7 @@ def decrypt(encrypted_text):
     key_bytes = key.encode('utf-8')
     key_bytes = key_bytes[:32].ljust(32, b'\0')
     encrypted_data = base62_decode(encrypted_text)
-    iv = encrypted_data[:16]  # Extract the 16 bytes IV
+    iv = encrypted_data[:16]
     encrypted_bytes = encrypted_data[16:]
     cipher = Cipher(algorithms.AES(key_bytes), modes.CFB(iv), backend=default_backend())
     decryptor = cipher.decryptor()

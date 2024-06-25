@@ -1,1 +1,1 @@
-worker: ./start.sh
+worker: bash -c "python3 update.py && python3 -m bot"

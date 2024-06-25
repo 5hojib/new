@@ -1,1 +1,2 @@
-worker: bash -c "python3 update.py && python3 -m bot"
+worker: python3 update.py
+worker: python3 -m bot

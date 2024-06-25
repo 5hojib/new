@@ -1,9 +1,8 @@
 from pymongo import MongoClient
 from bot import DATABASE_URL, BOT_NAME
 
-
 client = MongoClient(DATABASE_URL)
-db = f'client.aeonfilestore_{BOT_NAME}'
+db = client[f'aeonfilestore_{BOT_NAME}']
 user_data = db.users
 
 async def present_user(user_id: int):

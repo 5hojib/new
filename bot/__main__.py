@@ -33,7 +33,7 @@ async def start(_, message):
         link = message.command[1]
         link = decrypt(link)
         cid, mid = extract_ids(link)
-        return await bot.copy_message(message.chat.id, cid, mid)
+        return await bot.copy_message(int(message.chat.id), cid, mid)
     await sendMessage(message, start_msg)
 
 async def main():

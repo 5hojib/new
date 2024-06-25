@@ -1,10 +1,8 @@
 import os
 import string
-
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
-
 from bot import STORE_CHANNEL
 
 BASE62_ALPHABET = string.ascii_letters + string.digits
@@ -28,11 +26,10 @@ def base62_decode(data):
 def encrypt(text):
     key_bytes = key.encode('utf-8')
     key_bytes = key_bytes[:32].ljust(32, b'\0')
-    iv = b'\xccF\x17\x98\xaa\x80.\x1f^J\x10k\x0f\xad1\x8d'
-    cipher = Cipher(algorithms.AES(key_bytes), modes.CBC(iv), backend=default_backend())
+    iv = os.urandom(16)
+    cipher = Cipher(algorithms.AES(key_bytes), modes.CFB(iv), backend=default_backend())
     encryptor = cipher.encryptor()
-    padder = padding.PKCS7(algorithms.AES.block_size).padder()
-    padded_data = padder.update(text.encode('utf-8')) + padder.finalize()
+    padded_data = text.encode('utf-8')
     encrypted_bytes = encryptor.update(padded_data) + encryptor.finalize()
     encrypted_data = iv + encrypted_bytes
     encrypted_base62 = base62_encode(encrypted_data)
@@ -42,11 +39,9 @@ def decrypt(encrypted_text):
     key_bytes = key.encode('utf-8')
     key_bytes = key_bytes[:32].ljust(32, b'\0')
     encrypted_data = base62_decode(encrypted_text)
-    iv = encrypted_data[:16]
+    iv = encrypted_data[:16]  # Extract the 16 bytes IV
     encrypted_bytes = encrypted_data[16:]
-    cipher = Cipher(algorithms.AES(key_bytes), modes.CBC(iv), backend=default_backend())
+    cipher = Cipher(algorithms.AES(key_bytes), modes.CFB(iv), backend=default_backend())
     decryptor = cipher.decryptor()
-    decrypted_padded = decryptor.update(encrypted_bytes) + decryptor.finalize()
-    unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
-    decrypted_data = unpadder.update(decrypted_padded) + unpadder.finalize()
+    decrypted_data = decryptor.update(encrypted_bytes) + decryptor.finalize()
     return decrypted_data.decode('utf-8')

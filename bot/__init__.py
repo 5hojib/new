@@ -1,14 +1,18 @@
 from os import environ
-
 from logging import getLogger, basicConfig, ERROR, INFO
 from pyrogram import Client
 
+# Logging configuration
 basicConfig(level=INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 LOGGER = getLogger(__name__)
 getLogger("pyrogram").setLevel(ERROR)
 
+# Admins
+ADMINS = [2042193551, 5323651867]
+MORE_ADMINS = list(map(int, environ.get('MORE_ADMINS', '').split()))
+ADMINS.extend(MORE_ADMINS)
 
-ADMINS = environ['ADMINS']
+# Environment variables
 APP_ID = environ['APP_ID']
 API_HASH = environ['API_HASH']
 BOT_TOKEN = environ['BOT_TOKEN']

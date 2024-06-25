@@ -1,0 +1,53 @@
+name: Deploy to Heroku
+
+on:
+  workflow_dispatch:
+    inputs:
+      HEROKU_APP_NAME:
+        description: 'Heroku App name'
+        required: true
+      HEROKU_API_KEY:
+        description: 'Heroku API key'
+        required: true
+      HEROKU_EMAIL:
+        description: 'Heroku email address'
+        required: true
+      STORE_CHANNEL:
+        description: 'NOT FOR NOW'
+        required: true
+      BOT_TOKEN:
+        description: 'Telegram bot token'
+        required: true
+      ADMINS:
+        description: "Owner's telegram ID"
+        required: true
+      DATABASE_URL:
+        description: 'Database URL from MongoDB'
+        required: true
+      APP_ID:
+        description: 'Telegram API ID from https://my.telegram.org/'
+        required: true
+      API_HASH:
+        description: 'Telegram HASH from https://my.telegram.org/'
+        required: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{inputs.HEROKU_API_KEY}}
+          heroku_app_name: ${{inputs.HEROKU_APP_NAME}}
+          heroku_email: ${{inputs.HEROKU_EMAIL}}
+          usedocker: true
+          docker_heroku_process_type: worker
+          stack: "container"
+          region: "eu"
+        env:
+          HD_ADMINS: ${{inputs.OWNER_ID}}
+          HD_APP_ID: ${{inputs.TELEGRAM_API}}
+          HD_API_HASH: ${{inputs.TELEGRAM_HASH}}
+          HD_DATABASE_URL: ${{inputs.DATABASE_URL}}
+          HD_BOT_TOKEN: ${{inputs.BOT_TOKEN}}
+          HD_STORE_CHANNEL: ${{inputs.STORE_CHANNEL}}

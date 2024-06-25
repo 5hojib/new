@@ -1,0 +1,36 @@
+{
+  "name": "Aeon File share bot",
+  "env": {
+    "BOT_TOKEN": {
+      "description": "Your Bot token, Get it from @Botfather",
+      "value": ""
+    },
+    "APP_ID":{
+      "description": "your app id, take it from my.telegram.org",
+      "value": ""
+    },
+    "DATABASE_URL": {
+      "description": "Paste your mongo db url",
+      "value": ""
+    },
+    "API_HASH":{
+      "description": "your api hash, take it from my.telegram.org",
+      "value": ""
+    },
+    "STORE_CHANNEL":{
+      "description": "make a channel (database channel), then make the bot as admin in channel, and it's id",
+      "value": ""
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  }
+}

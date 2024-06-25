@@ -21,7 +21,7 @@ async def start_command(_, message):
 
     if len(message.command) > 1 and len(message.command[1]) > 10:
         string = message.command[1]
-        message_id = decrypt(string)
+        message_id = int(decrypt(string))
         await bot.copy_message(message.chat.id, STORE_CHANNEL, message_id)
         return
 

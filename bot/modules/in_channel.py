@@ -7,62 +7,73 @@ from pyrogram.handlers import MessageHandler
 
 from bot import bot, ADMINS, BOT_NAME, STORE_CHANNEL, LOGGER
 from bot.helpers.encryption import encrypt
+from bot.helpers.filters import Filters
+
 
 def extract_message_id(url):
     pattern = r"https://t\.me/c/\d+/\d+"
-    if re.match(pattern, url):
-        message_id = url.split('/')[-1]
-        return message_id
-    return None
+    match = re.match(pattern, url)
+    return url.split('/')[-1] if match else None
 
 async def copy_message(message):
-    try:
-        LOGGER.info("Attempting to copy message...")
-        post_message = await message.copy(chat_id=STORE_CHANNEL, disable_notification=True)
-        LOGGER.info(f"Message copied successfully: {post_message}")
-        return post_message
-    except FloodWait as e:
-        LOGGER.error(f"FloodWait error, waiting for {e.x} seconds")
-        await asyncio.sleep(e.x)
+    while True:
         try:
+            LOGGER.info("Attempting to copy message...")
             post_message = await message.copy(chat_id=STORE_CHANNEL, disable_notification=True)
-            LOGGER.info(f"Message copied successfully after FloodWait: {post_message}")
+            LOGGER.info(f"Message copied successfully: {post_message}")
             return post_message
+        except FloodWait as e:
+            LOGGER.error(f"FloodWait error, waiting for {e.x} seconds")
+            await asyncio.sleep(e.x)
         except Exception as e:
-            LOGGER.error(f"Error during message copy after FloodWait: {e}")
+            LOGGER.error(f"Error during message copy: {e}")
             return None
-    except Exception as e:
-        LOGGER.error(f"Error during message copy: {e}")
-        return None
 
 async def channel_post(client, message):
     reply_text = await message.reply_text("Please Wait...!", quote=True)
-    
     post_message = await copy_message(message)
-    if not post_message:
-        await reply_text.edit_text("Something went wrong during message copy..!")
-        return
-
-    if not hasattr(post_message, 'link'):
-        await reply_text.edit_text("Something went wrong, no link found in the post_message..!")
+    
+    if not post_message or not hasattr(post_message, 'link'):
+        await reply_text.edit_text("Something went wrong, unable to copy message or find link!")
         return
 
     mid = extract_message_id(post_message.link)
     if not mid:
-        await reply_text.edit_text("Something went wrong, unable to extract message ID from link..!")
+        await reply_text.edit_text("Something went wrong, unable to extract message ID from link!")
         return
 
     try:
-        base64_string = encrypt(mid)
-        link = f"https://t.me/{BOT_NAME}?start={base64_string}"
-        await reply_text.edit(
-            f"<b>Here is your link</b>\n\noriginal link:\n<code>{link}</code>",
-        )
+        string = encrypt(mid)
+        link = f"https://t.me/{BOT_NAME}?start={string}"
+        await reply_text.edit(f"<b>Here is your link</b>\n\noriginal link:\n<code>{link}</code>")
     except Exception as e:
         LOGGER.error(f"Error during encryption or link generation: {e}")
-        await reply_text.edit_text("Something went wrong during link generation..!")
+        await reply_text.edit_text("Something went wrong during link generation!")
+
+async def batch(_, message):
+    reply_text = await message.reply_text("Please Wait...!", quote=True)
+    msg = message.text.split()
+    first_id = extract_message_id(msg[1].strip())
+    second_id = extract_message_id(msg[2].strip())
+
+    if not first_id or not second_id:
+        await reply_text.edit_text("Invalid message URLs provided.")
         return
 
-private_and_admins_filter = filters.private & ~filters.command(['start', 'users', 'broadcast', 'batch'])
+    data = f"{first_id}_{second_id}"
+    try:
+        string = encrypt(data)
+        link = f"https://t.me/{BOT_NAME}?start={string}"
+        await reply_text.edit(f"<b>Here is your link</b>\n\noriginal link:\n<code>{link}</code>")
+    except Exception as e:
+        LOGGER.error(f"Error during encryption or link generation: {e}")
+        await reply_text.edit_text("Something went wrong during link generation!")
+
+
+# Handlers
+private_and_admins_filter = filters.private & Filters.admin & ~filters.command(['start', 'users', 'broadcast', 'batch'])
 channel_post_handler = MessageHandler(channel_post, private_and_admins_filter)
+batch_handler = MessageHandler(batch, filters.private & Filters.admin & filters.command('batch'))
+
 bot.add_handler(channel_post_handler)
+bot.add_handler(batch_handler)

@@ -5,7 +5,7 @@ from pyrogram import filters
 from pyrogram.errors import FloodWait
 from pyrogram.handlers import MessageHandler
 
-from bot import bot, ADMINS, BOT_NAME, STORE_CHANNEL
+from bot import bot, ADMINS, BOT_NAME, STORE_CHANNEL, LOGGER
 from bot.helpers.encryption import encrypt
 
 def extract_message_id(url):
@@ -17,22 +17,22 @@ def extract_message_id(url):
 
 async def copy_message(message):
     try:
-        print("Attempting to copy message...")
+        LOGGER.info("Attempting to copy message...")
         post_message = await message.copy(chat_id=STORE_CHANNEL, disable_notification=True)
-        print(f"Message copied successfully: {post_message}")
+        LOGGER.info(f"Message copied successfully: {post_message}")
         return post_message
     except FloodWait as e:
-        print(f"FloodWait error, waiting for {e.x} seconds")
+        LOGGER.error(f"FloodWait error, waiting for {e.x} seconds")
         await asyncio.sleep(e.x)
         try:
             post_message = await message.copy(chat_id=STORE_CHANNEL, disable_notification=True)
-            print(f"Message copied successfully after FloodWait: {post_message}")
+            LOGGER.info(f"Message copied successfully after FloodWait: {post_message}")
             return post_message
         except Exception as e:
-            print(f"Error during message copy after FloodWait: {e}")
+            LOGGER.error(f"Error during message copy after FloodWait: {e}")
             return None
     except Exception as e:
-        print(f"Error during message copy: {e}")
+        LOGGER.error(f"Error during message copy: {e}")
         return None
 
 async def channel_post(client, message):
@@ -59,7 +59,7 @@ async def channel_post(client, message):
             f"<b>Here is your link</b>\n\noriginal link:\n<code>{link}</code>",
         )
     except Exception as e:
-        print(f"Error during encryption or link generation: {e}")
+        LOGGER.error(f"Error during encryption or link generation: {e}")
         await reply_text.edit_text("Something went wrong during link generation..!")
         return
 

@@ -30,7 +30,6 @@ async def channel_post(client, message):
 
     await reply_text.edit(
         f"<b>Here is your link</b>\n\noriginal link:\n<code>{link}</code>",
-        parse_mode="html"
     )
 
 private_and_admins_filter = filters.private & ~filters.command(['start','users','broadcast','batch','genlink','stats'])

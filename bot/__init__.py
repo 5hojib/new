@@ -13,7 +13,7 @@ APP_ID = environ['APP_ID']
 API_HASH = environ['API_HASH']
 BOT_TOKEN = environ['BOT_TOKEN']
 DATABASE_URL = environ['DATABASE_URL']
-STORE_CHANNEL = str(environ['STORE_CHANNEL'])
+STORE_CHANNEL = int(environ['STORE_CHANNEL'])
 
 
 bot = Client('bot', APP_ID, API_HASH, bot_token = BOT_TOKEN).start()

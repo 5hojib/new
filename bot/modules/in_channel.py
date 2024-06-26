@@ -5,7 +5,7 @@ from pyrogram import filters
 from pyrogram.errors import FloodWait
 from pyrogram.handlers import MessageHandler
 
-from bot import bot, ADMINS, BOT_NAME, STORE_CHANNEL, LOGGER
+from bot import bot, ADMINS, BOT_NAME, STORE_CHANNEL
 from bot.helpers.encryption import encrypt
 from bot.helpers.filters import Filters
 
@@ -18,15 +18,11 @@ def extract_message_id(url):
 async def copy_message(message):
     while True:
         try:
-            LOGGER.info("Attempting to copy message...")
             post_message = await message.copy(chat_id=STORE_CHANNEL, disable_notification=True)
-            LOGGER.info(f"Message copied successfully: {post_message}")
             return post_message
         except FloodWait as e:
-            LOGGER.error(f"FloodWait error, waiting for {e.x} seconds")
             await asyncio.sleep(e.x)
         except Exception as e:
-            LOGGER.error(f"Error during message copy: {e}")
             return None
 
 async def channel_post(client, message):
@@ -42,13 +38,9 @@ async def channel_post(client, message):
         await reply_text.edit_text("Something went wrong, unable to extract message ID from link!")
         return
 
-    try:
-        string = encrypt(mid)
-        link = f"https://t.me/{BOT_NAME}?start={string}"
-        await reply_text.edit(f"<b>Here is your link</b>\n\noriginal link:\n<code>{link}</code>")
-    except Exception as e:
-        LOGGER.error(f"Error during encryption or link generation: {e}")
-        await reply_text.edit_text("Something went wrong during link generation!")
+    string = encrypt(mid)
+    link = f"https://t.me/{BOT_NAME}?start={string}"
+    await reply_text.edit(f"<b>Here is your link</b>\n\noriginal link:\n<code>{link}</code>")
 
 async def batch(_, message):
     reply_text = await message.reply_text("Please Wait...!", quote=True)
@@ -61,13 +53,9 @@ async def batch(_, message):
         return
 
     data = f"{first_id}_{second_id}"
-    try:
-        string = encrypt(data)
-        link = f"https://t.me/{BOT_NAME}?start={string}"
-        await reply_text.edit(f"<b>Here is your link</b>\n\noriginal link:\n<code>{link}</code>")
-    except Exception as e:
-        LOGGER.error(f"Error during encryption or link generation: {e}")
-        await reply_text.edit_text("Something went wrong during link generation!")
+    string = encrypt(data)
+    link = f"https://t.me/{BOT_NAME}?start={string}"
+    await reply_text.edit(f"<b>Here is your link</b>\n\noriginal link:\n<code>{link}</code>")
 
 
 # Handlers

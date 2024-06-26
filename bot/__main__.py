@@ -1,4 +1,4 @@
-import re
+import asyncio
 
 from pyrogram import Client, filters
 from pyrogram.handlers import MessageHandler
@@ -10,9 +10,6 @@ from bot.helpers.pyro import ButtonMaker, sendMessage
 from bot.helpers.encryption import decrypt
 
 
-#async def help_command(_, message):
- #   await sendMessage(message, help_msg)
-
 async def start_command(_, message):
     if message.chat.type == "private":
         user_id = message.from_user.id
@@ -20,9 +17,17 @@ async def start_command(_, message):
             await add_user(user_id)
 
     if len(message.command) > 1 and len(message.command[1]) > 10:
-        string = message.command[1]
-        message_id = int(decrypt(string))
-        await bot.copy_message(message.chat.id, STORE_CHANNEL, message_id)
+        encrypted_string = message.command[1]
+        decrypted_string = decrypt(encrypted_string)
+
+        if '_' in decrypted_string:
+            start_id, end_id = map(int, decrypted_string.split('_'))
+            for message_id in range(start_id, end_id + 1):
+                await bot.copy_message(message.chat.id, STORE_CHANNEL, message_id)
+                await asyncio.sleep(0.5)
+        else:
+            message_id = int(decrypted_string)
+            await bot.copy_message(message.chat.id, STORE_CHANNEL, message_id)
         return
 
     await sendMessage(message, "Hello\n\nI can store private files in Specified Channel and other users can access it from special link.")
@@ -30,7 +35,6 @@ async def start_command(_, message):
 
 async def main():
     bot.add_handler(MessageHandler(start_command, filters.command('start')))
-    #bot.add_handler(MessageHandler(help_command, filters.command('help')))
     LOGGER.info("Bot Started!")
 
 

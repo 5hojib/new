@@ -5,7 +5,7 @@ client = MongoClient(DATABASE_URL)
 db = client[f'aeonfilestore_{BOT_NAME}']
 user_data = db.users
 
-async def present_user(user_id: int):
+async def is_user_present(user_id: int):
     found = user_data.find_one({'_id': user_id})
     return bool(found)
 

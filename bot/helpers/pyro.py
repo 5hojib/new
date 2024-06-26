@@ -3,7 +3,21 @@ from asyncio import sleep
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import ReplyMarkupInvalid, FloodWait, RPCError, MessageNotModified, MessageEmpty
 
-from bot import LOGGER
+from bot import LOGGER, bot
+
+
+async def copyMessage(chat_id, from_chat_id, message_id):
+    while True:
+        try:
+            await bot.copy_message(chat_id, from_chat_id, message_id)
+            break
+        except FloodWait as e:
+            sleep_duration = e.value * 1.1
+            LOGGER.warning(f"FloodWait: Sleeping for {sleep_duration:.2f} seconds before retrying...")
+            await sleep(sleep_duration)
+        except Exception as e:
+            LOGGER.error(f"Failed to copy message: {e}")
+            raise
 
 
 async def sendMessage(message, text, buttons=None):
@@ -31,18 +45,6 @@ async def editMessage(message, text, buttons=None):
         return await editMessage(message, text, buttons)
     except (MessageNotModified, MessageEmpty):
         pass
-    except Exception as e:
-        LOGGER.error(str(e))
-        return str(e)
-
-
-async def sendFile(message, file, caption=None, buttons=None):
-    try:
-        return await message.reply_document(document=file, quote=True, caption=caption, disable_notification=True, reply_markup=buttons)
-    except FloodWait as f:
-        LOGGER.warning(str(f))
-        await sleep(f.value * 1.2)
-        return await sendFile(message, file, caption)
     except Exception as e:
         LOGGER.error(str(e))
         return str(e)

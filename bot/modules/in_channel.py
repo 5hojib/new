@@ -57,8 +57,8 @@ async def handle_post(_, message):
     enc_id = encrypt(msg_id)
     link = f"https://t.me/{BOT_NAME}?start={enc_id}"
     shortened_msg = await generate_shortened_message(link)
-    await editMessage(reply_msg, f"<b>Here is your link</b>\n\n{shortened_msg}")
-
+    formatted_msg = "\n".join(shortened_msg)
+    await editMessage(reply_msg, f"<b>Here is your link</b>\n\n{formatted_msg}")
 
 async def handle_batch(_, message):
     reply_msg = await sendMessage(message, "Please wait...")
@@ -69,7 +69,8 @@ async def handle_batch(_, message):
     enc_data = encrypt('_'.join(ids))
     link = f"https://t.me/{BOT_NAME}?start={enc_data}"
     shortened_msg = await generate_shortened_message(link)
-    await editMessage(reply_msg, f"<b>Here is your link</b>\n\n{shortened_msg}")
+    formatted_msg = "\n".join(shortened_msg)
+    await editMessage(reply_msg, f"<b>Here is your link</b>\n\n{formatted_msg}")
 
 
 # Handlers

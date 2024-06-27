@@ -6,7 +6,7 @@ from pyrogram.handlers import MessageHandler
 from bot import LOGGER, bot, STORE_CHANNEL
 from bot.modules import in_channel
 from bot.helpers.database import add_user, is_user_present
-from bot.helpers.pyro import sendMessage, copyMessage
+from bot.helpers.telegram_utils import sendMessage, copyMessage
 from bot.helpers.encryption import decrypt
 
 

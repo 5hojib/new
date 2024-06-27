@@ -4,65 +4,75 @@ import re
 from pyrogram import filters
 from pyrogram.errors import FloodWait
 from pyrogram.handlers import MessageHandler
+from urllib.parse import quote
+from cloudscraper import create_scraper
 
-from bot import bot, ADMINS, BOT_NAME, STORE_CHANNEL
-from bot.helpers.pyro import sendMessage, copyMessage, editMessage
+from bot import bot, BOT_NAME, STORE_CHANNEL
+from bot.helpers.telegram_utils import sendMessage, copyMessage, editMessage
 from bot.helpers.encryption import encrypt
 from bot.helpers.filters import Filters
 
 
-def extract_message_id_from_url(url):
-    pattern = r"https://t\.me/c/\d+/\d+"
-    match = re.match(pattern, url)
+# Configuration
+SHORTENERS = {
+    "https://modijiurl.com": "cd5b3b10ed0e7c30e795e7ab3c8778f799cafb5b",
+    "https://shorturllinks.com": "2bee326db06f49edd14d8f27d24594e260cc2b6f"
+}
+
+
+async def generate_shortened_message(link):
+    msgs = [f"Here is the original link: {link}\n"]
+    for shortener, api_key in SHORTENERS.items():
+        try:
+            res = create_scraper().get(f'{shortener}/api?api={api_key}&url={quote(link)}').json()
+            short_url = res.get('shortenedUrl', 'failed to shorten')
+        except:
+            short_url = 'failed to shorten'
+        msgs.append(f"Shortened link ({shortener}): {short_url}\n")
+    return msgs
+
+
+def extract_message_id(url):
+    match = re.match(r"https://t\.me/c/\d+/\d+", url)
     return url.split('/')[-1] if match else None
 
-async def copy_message_to_store_channel(message):
+
+async def copy_to_store_channel(message):
     while True:
         try:
-            copied_message = await message.copy(chat_id=STORE_CHANNEL, disable_notification=True)
-            return copied_message
+            return await message.copy(chat_id=STORE_CHANNEL, disable_notification=True)
         except FloodWait as e:
             await asyncio.sleep(e.x)
-        except Exception as e:
+        except:
             return None
 
-async def handle_channel_post(client, message):
-    reply_message = await sendMessage(message, "Please wait...")
-    copied_message = await copy_message_to_store_channel(message)
-    
-    if not copied_message or not hasattr(copied_message, 'link'):
-        await editMessage(reply_message, "Something went wrong, unable to copy message or find link!")
-        return
 
-    message_id = extract_message_id_from_url(copied_message.link)
-    if not message_id:
-        await editMessage(reply_message, "Something went wrong, unable to extract message ID from link!")
-        return
+async def handle_post(_, message):
+    reply_msg = await sendMessage(message, "Please wait...")
+    copied_msg = await copy_to_store_channel(message)
+    if not copied_msg or not hasattr(copied_msg, 'link'):
+        return await editMessage(reply_msg, "Failed to copy message or find link.")
 
-    encrypted_id = encrypt(message_id)
-    generated_link = f"https://t.me/{BOT_NAME}?start={encrypted_id}"
-    await editMessage(reply_message, f"<b>Here is your link</b>\n\noriginal link:\n<code>{generated_link}</code>")
+    msg_id = extract_message_id(copied_msg.link)
+    enc_id = encrypt(msg_id)
+    link = f"https://t.me/{BOT_NAME}?start={enc_id}"
+    shortened_msg = await generate_shortened_message(link)
+    await editMessage(reply_msg, f"<b>Here is your link</b>\n\n{shortened_msg}")
 
-async def handle_batch_command(_, message):
-    reply_message = await sendMessage(message, "Please wait...")
-    msg_parts = message.text.split()
-    first_message_id = extract_message_id_from_url(msg_parts[1].strip())
-    second_message_id = extract_message_id_from_url(msg_parts[2].strip())
 
-    if not first_message_id or not second_message_id:
-        await editMessage(reply_message, "Invalid message URLs provided.")
-        return
+async def handle_batch(_, message):
+    reply_msg = await sendMessage(message, "Please wait...")
+    ids = [extract_message_id(part.strip()) for part in message.text.split()[1:3]]
+    if None in ids:
+        return await editMessage(reply_msg, "Invalid message URLs provided.")
 
-    concatenated_ids = f"{first_message_id}_{second_message_id}"
-    encrypted_data = encrypt(concatenated_ids)
-    generated_link = f"https://t.me/{BOT_NAME}?start={encrypted_data}"
-    await editMessage(reply_message, f"<b>Here is your link</b>\n\noriginal link:\n<code>{generated_link}</code>")
+    enc_data = encrypt('_'.join(ids))
+    link = f"https://t.me/{BOT_NAME}?start={enc_data}"
+    shortened_msg = await generate_shortened_message(link)
+    await editMessage(reply_msg, f"<b>Here is your link</b>\n\n{shortened_msg}")
 
 
 # Handlers
-private_and_admin_filter = filters.private & Filters.admin & ~filters.command(['start', 'users', 'broadcast', 'batch'])
-channel_post_message_handler = MessageHandler(handle_channel_post, private_and_admin_filter)
-batch_command_handler = MessageHandler(handle_batch_command, filters.private & Filters.admin & filters.command('batch'))
-
-bot.add_handler(channel_post_message_handler)
-bot.add_handler(batch_command_handler)
+private_admin_filter = filters.private & Filters.admin & ~filters.command(['start', 'users', 'broadcast', 'batch'])
+bot.add_handler(MessageHandler(handle_post, private_admin_filter))
+bot.add_handler(MessageHandler(handle_batch, filters.private & Filters.admin & filters.command('batch')))
